@@ -1,0 +1,127 @@
+P1.tab.h
+
+/* Tokens.  */
+#ifndef YYTOKENTYPE
+# define YYTOKENTYPE
+   /* Put the tokens into the symbol table, so that GDB and other debuggers
+      know about them.  */
+   enum yytokentype {
+     HASHDEFINE = 258,
+     NOT = 259,
+     CURLY_OPEN = 260,
+     CURLY_CLOSE = 261,
+     PAR_OPEN = 262,
+     PAR_CLOSE = 263,
+     SQR_CLOSE = 264,
+     IF = 265,
+     WHILE = 266,
+     CLASS = 267,
+     PUBLIC = 268,
+     STATIC = 269,
+     VOID = 270,
+     MAIN = 271,
+     STR = 272,
+     PRINTLN = 273,
+     EXTENDS = 274,
+     THIS = 275,
+     NEW = 276,
+     SEMI_COLON = 277,
+     COMMA = 278,
+     LENGTH = 279,
+     TRUE = 280,
+     FALSE = 281,
+     NUMBER = 282,
+     RET = 283,
+     BOOL = 285,
+     INT = 286,
+     IDENTIFIER = 287,
+     ADD = 288,
+     SUB = 289,
+     MUL = 290,
+     DIV = 291,
+     MOD = 292,
+     BIT_AND = 293,
+     LESSTHAN = 294,
+     SQR_OPEN = 295,
+     DOT = 296,
+     ASSIGNMENT = 297,
+     ELSE = 298,
+     lab1 = 299,
+     newlabel = 300,
+     label = 301
+   };
+#endif
+
+
+
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+typedef union YYSTYPE
+{
+
+/* Line 2068 of yacc.c  */
+#line 25 "P1.y"
+
+char* str;    
+
+
+
+/* Line 2068 of yacc.c  */
+#line 102 "P1.tab.h"
+} YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
+# define yystype YYSTYPE /* obsolescent; will be withdrawn */
+# define YYSTYPE_IS_DECLARED 1
+#endif
+
+extern YYSTYPE yylval;
+
+Lex
+
+%{
+#include "P1.tab.h"
+#include <stdio.h>
+#include <stdlib.h>
+%}
+
+%%
+[ \t\n]         ; /* Ignore whitespace */
+"/*"([^*]|\n)*"*"+([^*/]|\n)*"*/"  ; /* Ignore multiline comments */
+"//"([^\n])*("\n"|EOF)              ; /* Ignore single-line comments */
+"="             { printf("%s %d\n", yytext, ASSIGNMENT); }
+"if"            { printf("%s %d\n", yytext, IF); }
+"+"             { printf("%s %d\n", yytext, ADD); }
+"-"             { printf("%s %d\n", yytext, SUB); }
+"*"             { printf("%s %d\n", yytext, MUL); }
+"/"             { printf("%s %d\n", yytext, DIV); }
+"("             { printf("%s %d\n", yytext, PAR_OPEN); }
+")"             { printf("%s %d\n", yytext, PAR_CLOSE); }
+"{"             { printf("%s %d\n", yytext, CURLY_OPEN); }
+"}"             { printf("%s %d\n", yytext, CURLY_CLOSE); }
+";"             { printf("%s %d\n", yytext, SEMI_COLON); }
+","             { printf("%s %d\n", yytext, COMMA); }
+[0-9]+          { printf("%s %d\n", yytext, NUMBER); }
+[a-zA-Z_][a-zA-Z0-9_]* { printf("%s %d\n", yytext, IDENTIFIER); }
+.               { printf("Invalid token: %s\n", yytext); exit(1); }
+
+%%
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        printf("Usage: %s <input_file>\n", argv[0]);
+        return 1;
+    }
+
+    yyin = fopen(argv[1], "r");
+    if (!yyin) {
+        printf("Error opening file: %s\n", argv[1]);
+        return 1;
+    }
+
+    yylex(); // Call the lexer
+
+    fclose(yyin);
+    return 0;
+}
+int yywrap() {
+    return 1;
+}

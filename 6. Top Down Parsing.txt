@@ -1,0 +1,216 @@
+First
+#include <iostream>
+#include <string>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+
+using namespace std;
+
+// Structure to represent a production rule
+struct Rule {
+    string lhs;
+    string rhs;
+};
+
+// Function to split a string by a delimiter
+vector<string> split(const string& str, char delimiter) {
+    vector<string> tokens;
+    string token;
+    for (char ch : str) {
+        if (ch == delimiter) {
+            if (!token.empty()) {
+                tokens.push_back(token);
+                token.clear();
+            }
+        } else {
+            token += ch;
+        }
+    }
+    if (!token.empty()) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+// Function to calculate first set of a non-terminal
+set<string> calculateFirst(const string& nonterm, const vector<Rule>& rules, const map<string, set<string>>& nontermFirst) {
+    set<string> first;
+    for (const auto& rule : rules) {
+        if (rule.lhs == nonterm) {
+            if (isupper(rule.rhs[0])) {
+                if (nonterm != rule.rhs) {
+                    set<string> rhsFirst = nontermFirst.at(rule.rhs);
+                    first.insert(rhsFirst.begin(), rhsFirst.end());
+                }
+            } else {
+                first.insert(rule.rhs.substr(0, 1));
+            }
+        }
+    }
+    return first;
+}
+
+// Function to calculate first sets for each non-terminal
+map<string, set<string>> calculateFirstSets(const vector<Rule>& rules) {
+    map<string, set<string>> nontermFirst;
+    for (const auto& rule : rules) {
+        nontermFirst[rule.lhs].insert(rule.rhs.substr(0, 1));
+    }
+    for (const auto& rule : rules) {
+        nontermFirst[rule.lhs] = calculateFirst(rule.lhs, rules, nontermFirst);
+    }
+    return nontermFirst;
+}
+
+// Function to print first sets for each non-terminal
+void printFirstSets(const map<string, set<string>>& nontermFirst) {
+    cout << "First sets:" << endl;
+    for (const auto& pair : nontermFirst) {
+        cout << pair.first << ": ";
+        for (const string& terminal : pair.second) {
+            cout << terminal << " ";
+        }
+        cout << endl;
+    }
+}
+
+int main() {
+    vector<Rule> rules;
+    cout << "Enter the number of productions: ";
+    int n;
+    cin >> n;
+    cin.ignore();
+    cout << "Enter the productions:" << endl;
+    for (int i = 0; i < n; ++i) {
+        string prod;
+        getline(cin, prod);
+        vector<string> parts = split(prod, '-');
+        rules.push_back({parts[0], parts[1]});
+    }
+
+    // Calculate first sets
+    map<string, set<string>> firstSets = calculateFirstSets(rules);
+
+    // Print first sets
+    printFirstSets(firstSets);
+
+    return 0;
+}
+
+Follow
+#include <iostream>
+#include <string>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+
+using namespace std;
+
+// Structure to represent a production rule
+struct Rule {
+    string lhs;
+    string rhs;
+};
+
+// Function to split a string by a delimiter
+vector<string> split(const string& str, char delimiter) {
+    vector<string> tokens;
+    string token;
+    for (char ch : str) {
+        if (ch == delimiter) {
+            if (!token.empty()) {
+                tokens.push_back(token);
+                token.clear();
+            }
+        } else {
+            token += ch;
+        }
+    }
+    if (!token.empty()) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+// Function to calculate follow set of a non-terminal
+set<string> calculateFollow(const string& nonterm, const vector<Rule>& rules, const map<string, set<string>>& nontermFirst, const map<string, set<string>>& nontermFollow) {
+    set<string> follow;
+    if (nonterm == rules[0].lhs) {
+        follow.insert("$");
+    }
+    for (const auto& rule : rules) {
+        size_t pos = rule.rhs.find(nonterm);
+        if (pos != string::npos) {
+            string beta = rule.rhs.substr(pos + 1);
+            if (beta.empty()) {
+                set<string> rhsFollow = nontermFollow.at(rule.lhs);
+                follow.insert(rhsFollow.begin(), rhsFollow.end());
+            } else {
+                set<string> betaFirst = nontermFirst.at(beta);
+                if (betaFirst.count("") > 0) {
+                    set<string> rhsFollow = nontermFollow.at(rule.lhs);
+                    follow.insert(rhsFollow.begin(), rhsFollow.end());
+                }
+                betaFirst.erase("");
+                follow.insert(betaFirst.begin(), betaFirst.end());
+            }
+        }
+    }
+    return follow;
+}
+
+// Function to calculate follow sets for each non-terminal
+map<string, set<string>> calculateFollowSets(const vector<Rule>& rules, const map<string, set<string>>& nontermFirst) {
+    map<string, set<string>> nontermFollow;
+    for (const auto& rule : rules) {
+        nontermFollow[rule.lhs] = calculateFollow(rule.lhs, rules, nontermFirst, nontermFollow);
+    }
+    return nontermFollow;
+}
+
+// Function to print follow sets for each non-terminal
+void printFollowSets(const map<string, set<string>>& nontermFollow) {
+    cout << "Follow sets:" << endl;
+    for (const auto& pair : nontermFollow) {
+        cout << pair.first << ": ";
+        for (const string& terminal : pair.second) {
+            cout << terminal << " ";
+        }
+        cout << endl;
+    }
+}
+
+int main() {
+    vector<Rule> rules;
+    cout << "Enter the number of productions: ";
+    int n;
+    cin >> n;
+    cin.ignore();
+    cout << "Enter the productions:" << endl;
+    for (int i = 0; i < n; ++i) {
+        string prod;
+        getline(cin, prod);
+        vector<string> parts = split(prod, '-');
+        rules.push_back({parts[0], parts[1]});
+    }
+
+    // Calculate first sets
+    map<string, set<string>> nontermFirst;
+    for (const auto& rule : rules) {
+        nontermFirst[rule.lhs].insert(rule.rhs.substr(0, 1));
+    }
+    for (const auto& rule : rules) {
+        nontermFirst[rule.lhs] = calculateFirst(rule.lhs, rules, nontermFirst);
+    }
+
+    // Calculate follow sets
+    map<string, set<string>> followSets = calculateFollowSets(rules, nontermFirst);
+
+    // Print follow sets
+    printFollowSets(followSets);
+
+    return 0;
+}
